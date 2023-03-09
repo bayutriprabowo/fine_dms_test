@@ -8,7 +8,7 @@ type User struct {
 	Password  string    `json:"password" validate:"required"`
 	Email     string    `json:"email" validate:"required"`
 	FirstName string    `json:"first_name" validate:"required"`
-	LastName  string    `json:last_name"`
+	LastName  string    `json:"last_name"`
 	CreatedAt time.Time `json:"created_at" validate:"required"`
 	UpdatedAt time.Time `json:"updated_at" validate:"required"`
 }
