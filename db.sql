@@ -32,6 +32,20 @@ create table m_tags (
     updated_at timestamp not null
 );
 
+-- table t_tags
+create table t_tags (
+    id bigserial primary key,
+    tags_id bigint not null,
+    file_id bigint not null,
+
+    constraint fk_tags_tags
+		foreign key (tags_id)
+			references m_tags (id)
+    constraint fk_tags_file
+		foreign key (file_id)
+			references m_file (id)
+);
+
 -- table t_upload
 create table t_upload (
     id bigserial primary key,
