@@ -48,7 +48,7 @@ func (repo *userRepository) CreateUser(user *model.User) error {
 	defer stmt.Close()
 
 	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
+	user.UpdatedAt = user.CreatedAt
 
 	_, err = stmt.Exec(user.Username, user.Password, user.Email, user.FirstName, user.LastName, user.CreatedAt, user.UpdatedAt)
 	if err != nil {

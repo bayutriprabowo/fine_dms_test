@@ -48,7 +48,7 @@ func (repo *tagsRepository) Create(tag *model.Tags) error {
 	defer stmt.Close()
 
 	tag.CreatedAt = time.Now()
-	tag.UpdatedAt = time.Now()
+	tag.UpdatedAt = tag.CreatedAt
 
 	_, err = stmt.Exec(tag.Name, tag.CreatedAt, tag.UpdatedAt)
 	if err != nil {

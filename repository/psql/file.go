@@ -49,7 +49,7 @@ func (repo *fileRepository) Create(file *model.File) error {
 	defer stmt.Close()
 
 	file.CreatedAt = time.Now()
-	file.UpdatedAt = time.Now()
+	file.UpdatedAt = file.CreatedAt
 
 	_, err = stmt.Exec(file.Path, file.Ext, file.User.ID, file.CreatedAt, file.UpdatedAt)
 	if err != nil {
