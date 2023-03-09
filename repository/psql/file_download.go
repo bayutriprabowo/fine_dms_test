@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 
 	"enigmacamp.com/fine_dms/model"
@@ -35,7 +34,7 @@ func (repo *fileDlRepository) Select() ([]model.FileDownload, error) {
 	}
 
 	if len(downloads) == 0 {
-		return nil, errors.New("no file download found")
+		return nil, repository.ErrNoData
 	}
 
 	return downloads, nil

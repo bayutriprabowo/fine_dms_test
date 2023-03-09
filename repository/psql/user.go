@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 
 	"enigmacamp.com/fine_dms/model"
@@ -35,7 +34,7 @@ func (repo *userRepository) SelectUser() ([]model.User, error) {
 	}
 
 	if len(users) == 0 {
-		return nil, errors.New("no user found")
+		return nil, repository.ErrNoData
 	}
 
 	return users, nil

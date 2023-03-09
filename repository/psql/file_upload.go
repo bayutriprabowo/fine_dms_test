@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 
 	"enigmacamp.com/fine_dms/model"
@@ -35,7 +34,7 @@ func (repo *fileUpRepository) Select() ([]model.FileUpload, error) {
 	}
 
 	if len(fileUploads) == 0 {
-		return nil, errors.New("no file upload found")
+		return nil, repository.ErrNoData
 	}
 
 	return fileUploads, nil

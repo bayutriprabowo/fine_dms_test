@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 
 	"enigmacamp.com/fine_dms/model"
@@ -35,7 +34,7 @@ func (repo *tagsRepository) Select() ([]model.Tags, error) {
 	}
 
 	if len(tags) == 0 {
-		return nil, errors.New("no tags found")
+		return nil, repository.ErrNoData
 	}
 
 	return tags, nil
