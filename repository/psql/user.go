@@ -6,13 +6,18 @@ import (
 	"time"
 
 	"enigmacamp.com/fine_dms/model"
+	"enigmacamp.com/fine_dms/repository"
 )
 
-type UserRepository struct {
+type userRepository struct {
 	DB *sql.DB
 }
 
-func (repo *UserRepository) SelectUser() ([]model.User, error) {
+func NewUserRepository(db *sql.DB) repository.UserRepository {
+	return &userRepository{DB: db}
+}
+
+func (repo *userRepository) SelectUser() ([]model.User, error) {
 	rows, err := repo.DB.Query("SELECT id, username, password, email, first_name, last_name, created_at, updated_at FROM users")
 	if err != nil {
 		return nil, err
@@ -36,7 +41,7 @@ func (repo *UserRepository) SelectUser() ([]model.User, error) {
 	return users, nil
 }
 
-func (repo *UserRepository) CreateUser(user *model.User) error {
+func (repo *userRepository) CreateUser(user *model.User) error {
 	stmt, err := repo.DB.Prepare("INSERT INTO users(username, password, email, first_name, last_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return err
@@ -54,7 +59,7 @@ func (repo *UserRepository) CreateUser(user *model.User) error {
 	return nil
 }
 
-func (repo *UserRepository) UpdateUser(user *model.User) error {
+func (repo *userRepository) UpdateUser(user *model.User) error {
 	stmt, err := repo.DB.Prepare("UPDATE users SET username=?, password=?, email=?, first_name=?, last_name=?, updated_at=? WHERE id=?")
 	if err != nil {
 		return err
@@ -71,7 +76,7 @@ func (repo *UserRepository) UpdateUser(user *model.User) error {
 	return nil
 }
 
-func (repo *UserRepository) DeleteUser(id int) error {
+func (repo *userRepository) DeleteUser(id int) error {
 	stmt, err := repo.DB.Prepare("DELETE FROM users WHERE id=?")
 	if err != nil {
 		return err

@@ -6,13 +6,18 @@ import (
 	"time"
 
 	"enigmacamp.com/fine_dms/model"
+	"enigmacamp.com/fine_dms/repository"
 )
 
-type TagsRepository struct {
+type tagsRepository struct {
 	DB *sql.DB
 }
 
-func (repo *TagsRepository) Select() ([]model.Tags, error) {
+func NewTagsRepository(db *sql.DB) repository.TagsRepository {
+	return &tagsRepository{DB: db}
+}
+
+func (repo *tagsRepository) Select() ([]model.Tags, error) {
 	rows, err := repo.DB.Query("SELECT id, name, created_at, updated_at FROM tags")
 	if err != nil {
 		return nil, err
@@ -36,7 +41,7 @@ func (repo *TagsRepository) Select() ([]model.Tags, error) {
 	return tags, nil
 }
 
-func (repo *TagsRepository) Create(tag *model.Tags) error {
+func (repo *tagsRepository) Create(tag *model.Tags) error {
 	stmt, err := repo.DB.Prepare("INSERT INTO tags(name, created_at, updated_at) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
@@ -54,7 +59,7 @@ func (repo *TagsRepository) Create(tag *model.Tags) error {
 	return nil
 }
 
-func (repo *TagsRepository) Update(tag *model.Tags) error {
+func (repo *tagsRepository) Update(tag *model.Tags) error {
 	stmt, err := repo.DB.Prepare("UPDATE tags SET name=?, updated_at=? WHERE id=?")
 	if err != nil {
 		return err
@@ -71,7 +76,7 @@ func (repo *TagsRepository) Update(tag *model.Tags) error {
 	return nil
 }
 
-func (repo *TagsRepository) Delete(id int) error {
+func (repo *tagsRepository) Delete(id int) error {
 	stmt, err := repo.DB.Prepare("DELETE FROM tags WHERE id=?")
 	if err != nil {
 		return err

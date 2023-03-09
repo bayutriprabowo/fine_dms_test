@@ -6,13 +6,18 @@ import (
 	"time"
 
 	"enigmacamp.com/fine_dms/model"
+	"enigmacamp.com/fine_dms/repository"
 )
 
-type FileUploadRepository struct {
+type fileUpRepository struct {
 	DB *sql.DB
 }
 
-func (repo *FileUploadRepository) Select() ([]model.FileUpload, error) {
+func NewFileUploadRepository(db *sql.DB) repository.FileUploadRepository {
+	return &fileUpRepository{DB: db}
+}
+
+func (repo *fileUpRepository) Select() ([]model.FileUpload, error) {
 	rows, err := repo.DB.Query("SELECT id, file_id, user_id, date FROM file_uploads")
 	if err != nil {
 		return nil, err
@@ -36,7 +41,7 @@ func (repo *FileUploadRepository) Select() ([]model.FileUpload, error) {
 	return fileUploads, nil
 }
 
-func (repo *FileUploadRepository) Create(fileUpload *model.FileUpload) error {
+func (repo *fileUpRepository) Create(fileUpload *model.FileUpload) error {
 	stmt, err := repo.DB.Prepare("INSERT INTO file_uploads(file_id, user_id, date) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
@@ -53,7 +58,7 @@ func (repo *FileUploadRepository) Create(fileUpload *model.FileUpload) error {
 	return nil
 }
 
-func (repo *FileUploadRepository) Update(fileUpload *model.FileUpload) error {
+func (repo *fileUpRepository) Update(fileUpload *model.FileUpload) error {
 	stmt, err := repo.DB.Prepare("UPDATE file_uploads SET file_id=?, user_id=?, date=? WHERE id=?")
 	if err != nil {
 		return err
@@ -68,7 +73,7 @@ func (repo *FileUploadRepository) Update(fileUpload *model.FileUpload) error {
 	return nil
 }
 
-func (repo *FileUploadRepository) Delete(id int) error {
+func (repo *fileUpRepository) Delete(id int) error {
 	stmt, err := repo.DB.Prepare("DELETE FROM file_uploads WHERE id=?")
 	if err != nil {
 		return err
