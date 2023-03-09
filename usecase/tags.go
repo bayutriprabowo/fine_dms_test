@@ -20,26 +20,26 @@ type tagsUsecase struct {
 	tagsRepo repository.TagsRepository
 }
 
-func (u *tagsUsecase) Select() ([]model.Tags, error) {
-	return u.tagsRepo.Select()
+func (usecase *tagsUsecase) Select() ([]model.Tags, error) {
+	return usecase.tagsRepo.Select()
 }
 
-func (u *tagsUsecase) Create(tag *model.Tags) error {
+func (usecase *tagsUsecase) Create(tag *model.Tags) error {
 	if !isValidTag(tag.Name) {
 		return errors.New("Tag name must only contain alphabetical characters and maximum of 5 words")
 	}
-	return u.tagsRepo.Create(tag)
+	return usecase.tagsRepo.Create(tag)
 }
 
-func (u *tagsUsecase) Update(tag *model.Tags) error {
+func (usecase *tagsUsecase) Update(tag *model.Tags) error {
 	if !isValidTag(tag.Name) {
 		return errors.New("Tag name must only contain alphabetical characters and maximum of 5 words")
 	}
-	return u.tagsRepo.Update(tag)
+	return usecase.tagsRepo.Update(tag)
 }
 
-func (u *tagsUsecase) Delete(id int) error {
-	return u.tagsRepo.Delete(id)
+func (usecase *tagsUsecase) Delete(id int) error {
+	return usecase.tagsRepo.Delete(id)
 }
 
 func NewTagsUsecase(tagsRepo repository.TagsRepository) TagsUsecase {
