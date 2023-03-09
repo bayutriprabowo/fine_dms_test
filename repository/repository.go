@@ -1,7 +1,14 @@
 package repository
 
 import (
+	"errors"
+
 	"enigmacamp.com/fine_dms/model"
+)
+
+var (
+	ErrNoData = errors.New("no data")
+	ErrAleady = errors.New("already exists")
 )
 
 type UserRepository interface {
