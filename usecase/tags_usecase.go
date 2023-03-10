@@ -8,13 +8,6 @@ import (
 	"enigmacamp.com/fine_dms/utils"
 )
 
-type TagsUsecase interface {
-	Select() ([]model.Tags, error)
-	Create(tag *model.Tags) error
-	Update(tag *model.Tags) error
-	Delete(id int) error
-}
-
 type tagsUsecase struct {
 	tagsRepo repository.TagsRepository
 }
