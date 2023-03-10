@@ -10,11 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ValidateToken() gin.HandlerFunc {
+func ValidateToken(secret []byte) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHdr := ctx.GetHeader("Authorization")
 		tokStr := strings.Replace(authHdr, "Bearer ", "", 1)
-		tok, err := utils.ValidateToken(tokStr)
+		tok, err := utils.ValidateToken(tokStr, secret)
 		if err != nil {
 			controller.FailedJSONResponse(ctx,
 				http.StatusUnauthorized,
