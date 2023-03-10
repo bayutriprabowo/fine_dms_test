@@ -1,51 +1,108 @@
 package usecase
 
 import (
+	"errors"
+
 	"enigmacamp.com/fine_dms/model"
-	"enigmacamp.com/fine_dms/repository"
-	"enigmacamp.com/fine_dms/utils"
+	"enigmacamp.com/fine_dms/repo"
 )
 
-type userUsecase struct {
-	userRepo repository.UserRepository
+var (
+	ErrUsecaseEmptyEmail     = errors.New("`email` cannot be empty")
+	ErrUsecaseEmptyUsername  = errors.New("`username` cannot be empty")
+	ErrUsecaseEmptyPassword  = errors.New("`password` cannot be empty")
+	ErrUsecaseEmptyFname     = errors.New("`first_name` cannot be empty")
+	ErrUsecaseExistsUsername = errors.New("`username` already exists")
+	ErrUsecaseExistsEmail    = errors.New("`email` already exists")
+)
+
+type user struct {
+	userRepo repo.UserRepo
 }
 
-func (usecase *userUsecase) Select() ([]model.User, error) {
-	return usecase.userRepo.SelectUser()
+func NewUserUsecase(userRepo repo.UserRepo) UserUsecase {
+	return &user{userRepo}
 }
 
-func (usecase *userUsecase) Create(user *model.User) error {
-	if err := utils.IsValidInput(user); err != nil {
-		return err
+func (self *user) GetAll() ([]model.User, error) {
+	res, err := self.userRepo.SelectAll()
+	if err == repo.ErrRepoNoData {
+		return nil, ErrUsecaseNoData
 	}
-	if err := utils.IsDuplicateUsername(usecase.userRepo, user); err != nil {
-		return err
-	}
-	if err := utils.IsDuplicateEmail(usecase.userRepo, user); err != nil {
-		return err
-	}
-	return usecase.userRepo.CreateUser(user)
+
+	return res, nil
 }
 
-func (usecase *userUsecase) Update(user *model.User) error {
-	if err := utils.IsValidInput(user); err != nil {
-		return err
+func (self *user) GetById(id int) (*model.User, error) {
+	res, err := self.userRepo.SelectById(id)
+	if err == repo.ErrRepoNoData {
+		return nil, ErrUsecaseNoData
 	}
-	if err := utils.IsDuplicateUsername(usecase.userRepo, user); err != nil {
-		return err
-	}
-	if err := utils.IsDuplicateEmail(usecase.userRepo, user); err != nil {
-		return err
-	}
-	return usecase.userRepo.UpdateUser(user)
+
+	return res, nil
 }
 
-func (usecase *userUsecase) Delete(id int) error {
-	return usecase.userRepo.DeleteUser(id)
+func (self *user) GetByUsername(uname string) (*model.User, error) {
+	res, err := self.userRepo.SelectByUsername(uname)
+	if err == repo.ErrRepoNoData {
+		return nil, ErrUsecaseNoData
+	}
+
+	return res, nil
 }
 
-func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
-	return &userUsecase{
-		userRepo: userRepo,
+func (self *user) Add(user *model.User) error {
+	if len(user.Email) == 0 {
+		return ErrUsecaseEmptyEmail
 	}
+
+	if len(user.Password) == 0 {
+		return ErrUsecaseEmptyPassword
+	}
+
+	if len(user.FirstName) == 0 {
+		return ErrUsecaseEmptyFname
+	}
+
+	_, err := self.userRepo.SelectByUsername(user.Username)
+	if err != nil && err != repo.ErrRepoNoData {
+		return ErrUsecaseInternal
+	}
+	if err == nil {
+		return ErrUsecaseExistsUsername
+	}
+
+	_, err = self.userRepo.SelectByEmail(user.Email)
+	if err != nil && err != repo.ErrRepoNoData {
+		return ErrUsecaseInternal
+	}
+	if err == nil {
+		return ErrUsecaseExistsEmail
+	}
+
+	// TODO: hashing password
+
+	return self.userRepo.Create(user)
+}
+
+func (self *user) Edit(user *model.User) error {
+	if len(user.Email) == 0 {
+		return ErrUsecaseEmptyEmail
+	}
+
+	if len(user.Password) == 0 {
+		return ErrUsecaseEmptyPassword
+	}
+
+	if len(user.FirstName) == 0 {
+		return ErrUsecaseEmptyFname
+	}
+
+	// TODO: hashing password
+
+	return self.userRepo.Update(user)
+}
+
+func (self *user) Del(id int) error {
+	return self.userRepo.Delete(id)
 }

@@ -1,17 +1,25 @@
 package usecase
 
-import "enigmacamp.com/fine_dms/model"
+import (
+	"errors"
+
+	"enigmacamp.com/fine_dms/model"
+)
+
+var (
+	ErrUsecaseInternal = errors.New("internal server error")
+	ErrUsecaseNoData   = errors.New("no data")
+)
 
 type TagsUsecase interface {
-	Select() ([]model.Tags, error)
-	Create(tag *model.Tags) error
-	Update(tag *model.Tags) error
-	Delete(id int) error
+	GetAll() ([]model.Tags, error)
 }
 
 type UserUsecase interface {
-	Select() ([]model.User, error)
-	Create(user *model.User) error
-	Update(user *model.User) error
-	Delete(id int) error
+	GetAll() ([]model.User, error)
+	GetById(id int) (*model.User, error)
+	GetByUsername(uname string) (*model.User, error)
+	Add(user *model.User) error
+	Edit(user *model.User) error
+	Del(id int) error
 }

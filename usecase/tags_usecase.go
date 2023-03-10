@@ -1,41 +1,18 @@
 package usecase
 
 import (
-	"errors"
-
 	"enigmacamp.com/fine_dms/model"
-	"enigmacamp.com/fine_dms/repository"
-	"enigmacamp.com/fine_dms/utils"
+	"enigmacamp.com/fine_dms/repo"
 )
 
-type tagsUsecase struct {
-	tagsRepo repository.TagsRepository
+type tags struct {
+	tagsRepo repo.TagsRepo
 }
 
-func (usecase *tagsUsecase) Select() ([]model.Tags, error) {
-	return usecase.tagsRepo.Select()
+func NewTagsUsecase(tagsRepo repo.TagsRepo) TagsUsecase {
+	return &tags{tagsRepo}
 }
 
-func (usecase *tagsUsecase) Create(tag *model.Tags) error {
-	if !utils.IsValidTag(tag.Name) {
-		return errors.New("Tag name must only contain alphabetical characters and maximum of 5 words")
-	}
-	return usecase.tagsRepo.Create(tag)
-}
-
-func (usecase *tagsUsecase) Update(tag *model.Tags) error {
-	if !utils.IsValidTag(tag.Name) {
-		return errors.New("Tag name must only contain alphabetical characters and maximum of 5 words")
-	}
-	return usecase.tagsRepo.Update(tag)
-}
-
-func (usecase *tagsUsecase) Delete(id int) error {
-	return usecase.tagsRepo.Delete(id)
-}
-
-func NewTagsUsecase(tagsRepo repository.TagsRepository) TagsUsecase {
-	return &tagsUsecase{
-		tagsRepo: tagsRepo,
-	}
+func (self *tags) GetAll() ([]model.Tags, error) {
+	return self.GetAll()
 }
