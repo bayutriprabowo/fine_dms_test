@@ -27,10 +27,10 @@ func IsValidInput(user *model.User) error {
 		return errors.New("Username cannot be empty")
 	}
 	if user.Email == "" {
-		return errors.New("Email Username cannot be empty")
+		return errors.New("Email cannot be empty")
 	}
 	if user.Password == "" {
-		return errors.New("Password Username cannot be empty")
+		return errors.New("Password cannot be empty")
 	}
 
 	return nil
