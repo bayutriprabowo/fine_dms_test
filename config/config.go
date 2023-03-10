@@ -11,6 +11,7 @@ type DbConfig struct {
 
 type ApiConfig struct {
 	Host, Port string
+	Secret     string
 }
 
 type AppConfig struct {
@@ -29,8 +30,9 @@ func NewAppConfig() AppConfig {
 			SslMode:  utils.GetEnv("DB_SSL_MODE"),
 		},
 		ApiConfig: ApiConfig{
-			Host: utils.GetEnv("HTTP_SERVER_HOST"),
-			Port: utils.GetEnv("HTTP_SERVER_PORT"),
+			Host:   utils.GetEnv("HTTP_SERVER_HOST"),
+			Port:   utils.GetEnv("HTTP_SERVER_PORT"),
+			Secret: utils.GetEnv("SECRET_KEY"),
 		},
 	}
 }
