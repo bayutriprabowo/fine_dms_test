@@ -1,6 +1,11 @@
 package config
 
-import "enigmacamp.com/fine_dms/utils"
+import (
+	"strconv"
+	"time"
+
+	"enigmacamp.com/fine_dms/utils"
+)
 
 type DbConfig struct {
 	Name           string
@@ -9,17 +14,27 @@ type DbConfig struct {
 	SslMode        string
 }
 
+type Secret struct {
+	Key string
+	Exp time.Duration
+}
+
 type ApiConfig struct {
 	Host, Port string
-	Secret     string
 }
 
 type AppConfig struct {
 	ApiConfig ApiConfig
 	DbConfig  DbConfig
+	Secret    Secret
 }
 
 func NewAppConfig() AppConfig {
+	exp, err := strconv.Atoi(utils.GetEnv("TOKEN_EXP"))
+	if err != nil {
+		exp = int(time.Hour) * 24
+	}
+
 	return AppConfig{
 		DbConfig: DbConfig{
 			Name:     utils.GetEnv("DB_NAME"),
@@ -30,9 +45,12 @@ func NewAppConfig() AppConfig {
 			SslMode:  utils.GetEnv("DB_SSL_MODE"),
 		},
 		ApiConfig: ApiConfig{
-			Host:   utils.GetEnv("HTTP_SERVER_HOST"),
-			Port:   utils.GetEnv("HTTP_SERVER_PORT"),
-			Secret: utils.GetEnv("SECRET_KEY"),
+			Host: utils.GetEnv("HTTP_SERVER_HOST"),
+			Port: utils.GetEnv("HTTP_SERVER_PORT"),
+		},
+		Secret: Secret{
+			Key: utils.GetEnv("SECRET_KEY"),
+			Exp: time.Duration(exp),
 		},
 	}
 }
