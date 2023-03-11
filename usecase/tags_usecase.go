@@ -1,8 +1,16 @@
 package usecase
 
 import (
+	"errors"
+
 	"enigmacamp.com/fine_dms/model"
 	"enigmacamp.com/fine_dms/repo"
+	"enigmacamp.com/fine_dms/utils"
+)
+
+var (
+	ErrUsecaseInvalidTag = errors.New("`tag_name` must be alphanumeric " +
+		"and has length at least (> 0 and <= 16)")
 )
 
 type tags struct {
@@ -41,6 +49,9 @@ func (self *tags) GetByName(name string) (*model.Tags, error) {
 }
 
 func (self *tags) Add(tag *model.Tags) error {
-	// TODO: validation
+	if utils.IsValidTag(tag.Name) {
+		return ErrUsecaseInvalidTag
+	}
+
 	return self.tagsRepo.Create(tag)
 }
