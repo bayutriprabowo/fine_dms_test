@@ -31,6 +31,9 @@ type FileRepo interface {
 
 type TagsRepo interface {
 	SelectAll() ([]model.Tags, error)
+	SelectById(id int) (*model.Tags, error)
+	SelectByName(name string) (*model.Tags, error)
+	Create(tag *model.Tags) error
 }
 
 type TrxTagsRepo interface {

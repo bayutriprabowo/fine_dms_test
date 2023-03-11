@@ -13,6 +13,9 @@ var (
 
 type TagsUsecase interface {
 	GetAll() ([]model.Tags, error)
+	GetById(id int) (*model.Tags, error)
+	GetByName(name string) (*model.Tags, error)
+	Add(tag *model.Tags) error
 }
 
 type UserUsecase interface {

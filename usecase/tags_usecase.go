@@ -21,3 +21,26 @@ func (self *tags) GetAll() ([]model.Tags, error) {
 
 	return res, err
 }
+
+func (self *tags) GetById(id int) (*model.Tags, error) {
+	res, err := self.tagsRepo.SelectById(id)
+	if err == repo.ErrRepoNoData {
+		return nil, ErrUsecaseNoData
+	}
+
+	return res, err
+}
+
+func (self *tags) GetByName(name string) (*model.Tags, error) {
+	res, err := self.tagsRepo.SelectByName(name)
+	if err == repo.ErrRepoNoData {
+		return nil, ErrUsecaseNoData
+	}
+
+	return res, err
+}
+
+func (self *tags) Add(tag *model.Tags) error {
+	// TODO: validation
+	return self.tagsRepo.Create(tag)
+}
