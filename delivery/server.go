@@ -53,4 +53,5 @@ func (self *AppServer) Run() error {
 func (self *AppServer) v1() {
 	baseRg := self.engine.Group("/v1")
 	controller.NewUserController(baseRg, self.ucMgr.UserUsecase())
+	controller.NewTagsController(baseRg, self.ucMgr.TagsUsecase())
 }

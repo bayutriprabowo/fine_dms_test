@@ -14,5 +14,10 @@ func NewTagsUsecase(tagsRepo repo.TagsRepo) TagsUsecase {
 }
 
 func (self *tags) GetAll() ([]model.Tags, error) {
-	return self.GetAll()
+	res, err := self.tagsRepo.SelectAll()
+	if err == repo.ErrRepoNoData {
+		return nil, ErrUsecaseNoData
+	}
+
+	return res, err
 }

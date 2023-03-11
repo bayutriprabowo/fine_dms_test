@@ -7,6 +7,7 @@ import (
 
 type RepoManager interface {
 	UserRepo() repo.UserRepo
+	TagsRepo() repo.TagsRepo
 	// Add other repo below
 }
 
@@ -22,4 +23,8 @@ func NewRepoManager(infr InfraManager) RepoManager {
 
 func (self *repoManager) UserRepo() repo.UserRepo {
 	return psql.NewPsqlUserRepo(self.infraMgr.DbConn())
+}
+
+func (self *repoManager) TagsRepo() repo.TagsRepo {
+	return psql.NewPsqlTagsRepo(self.infraMgr.DbConn())
 }
