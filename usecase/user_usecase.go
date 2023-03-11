@@ -2,9 +2,12 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
 
 	"enigmacamp.com/fine_dms/model"
 	"enigmacamp.com/fine_dms/repo"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -141,4 +144,50 @@ func (self *user) Login(username, password string) (*model.User, error) {
 	}
 
 	return user, nil
+}
+
+func (self *user) AuthenticateUser(username string, password string) (int64, error) {
+	// Mendapatkan data pengguna berdasarkan username
+	user, err := self.GetByUsername(username)
+	if err != nil {
+		return 0, errors.New("Username atau password salah")
+	}
+
+	// Membandingkan password yang dimasukkan dengan password yang tersimpan
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return 0, errors.New("Username atau password salah")
+	}
+
+	// Autentikasi berhasil, mengembalikan ID pengguna
+	return int64(user.ID), nil
+}
+
+func (self *user) GetUserIdFromToken(tokenString string) (int64, error) {
+	// Parsing token dari string ke object
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Memverifikasi signature token dengan secret key
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("Unexpected signing method")
+		}
+		return []byte("secret"), nil // Ganti "secret" dengan secret key yang digunakan
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	// Mengekstrak claims dari token
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return 0, errors.New("Invalid token")
+	}
+
+	// Mengambil ID pengguna dari claims
+	userId, err := strconv.ParseInt(fmt.Sprintf("%.0f", claims["userId"]), 10, 64)
+	if err != nil {
+		return 0, errors.New("Invalid token")
+	}
+
+	// Token valid, mengembalikan ID pengguna
+	return userId, nil
 }

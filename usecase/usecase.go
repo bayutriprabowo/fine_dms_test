@@ -25,4 +25,6 @@ type UserUsecase interface {
 	Add(user *model.User) error
 	Edit(user *model.User) error
 	Del(id int) error
+	AuthenticateUser(string, string) (int64, error)
+	GetUserIdFromToken(string) (int64, error)
 }
