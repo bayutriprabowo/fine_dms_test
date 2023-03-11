@@ -14,19 +14,24 @@ type DbConfig struct {
 	SslMode        string
 }
 
+type ApiConfig struct {
+	Host, Port string
+}
+
+type Storage struct {
+	Dir string
+}
+
 type Secret struct {
 	Key string
 	Exp time.Duration
-}
-
-type ApiConfig struct {
-	Host, Port string
 }
 
 type AppConfig struct {
 	ApiConfig ApiConfig
 	DbConfig  DbConfig
 	Secret    Secret
+	Storage   Storage
 }
 
 func NewAppConfig() AppConfig {
@@ -51,6 +56,9 @@ func NewAppConfig() AppConfig {
 		Secret: Secret{
 			Key: utils.GetEnv("SECRET_KEY"),
 			Exp: time.Duration(exp),
+		},
+		Storage: Storage{
+			Dir: utils.GetEnv("STORAGE_DIR"),
 		},
 	}
 }
