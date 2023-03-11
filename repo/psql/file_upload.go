@@ -16,14 +16,15 @@ func NewPsqlFileUploadRepo(db *sql.DB) repo.FileUploadRepo {
 	return &fileUp{db}
 }
 
-func (self *fileUp) SelectAll() ([]model.FileUpload, error) {
+func (self *fileUp) SelectAllByUserId(id int) ([]model.FileUpload, error) {
 	rows, err := self.db.Query(`
 		SELECT	 id
 			,file_id
 			,user_id
 			,created_at
 		FROM t_file_upload
-	`)
+		WHERE user_id = $1
+	`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +48,7 @@ func (self *fileUp) SelectAll() ([]model.FileUpload, error) {
 	return fileUploads, nil
 }
 
+// BROKEN
 func (self *fileUp) Create(fileUp *model.FileUpload) error {
 	stmt, err := self.db.Prepare(`
 		INSERT INTO t_file_upload(
@@ -71,6 +73,7 @@ func (self *fileUp) Create(fileUp *model.FileUpload) error {
 	return nil
 }
 
+// BROKEN
 func (self *fileUp) Update(fileUp *model.FileUpload) error {
 	stmt, err := self.db.Prepare(`
 		UPDATE t_file_upload SET
@@ -93,6 +96,7 @@ func (self *fileUp) Update(fileUp *model.FileUpload) error {
 	return nil
 }
 
+// BROKEN
 func (self *fileUp) Delete(id int) error {
 	stmt, err := self.db.Prepare("DELETE FROM t_file_upload WHERE id=?")
 	if err != nil {

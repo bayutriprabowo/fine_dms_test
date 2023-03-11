@@ -16,16 +16,17 @@ func NewPsqlFileRepo(db *sql.DB) repo.FileRepo {
 	return &file{db}
 }
 
-func (self *file) SelectAll() ([]model.File, error) {
+func (self *file) SelectAllByUserId(id int) ([]model.File, error) {
 	rows, err := self.db.Query(`
-		SELECT  id
+		SELECT	 id
 			,path
 			,ext
 			,user_id
 			,created_at
 			,updated_at
 		FROM m_file
-	`)
+		WHERE user_id = $1
+	`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +50,7 @@ func (self *file) SelectAll() ([]model.File, error) {
 	return files, nil
 }
 
+// BROKEN
 func (self *file) Create(file *model.File) error {
 	stmt, err := self.db.Prepare(`
 		INSERT INTO m_file(
@@ -77,6 +79,7 @@ func (self *file) Create(file *model.File) error {
 	return nil
 }
 
+// BROKEN
 func (self *file) Update(file *model.File) error {
 	stmt, err := self.db.Prepare(`
 		UPDATE m_file SET
@@ -102,6 +105,7 @@ func (self *file) Update(file *model.File) error {
 	return nil
 }
 
+// BROKEN
 func (self *file) Delete(id int) error {
 	stmt, err := self.db.Prepare("DELETE FROM m_file WHERE id=?")
 	if err != nil {

@@ -16,14 +16,15 @@ func NewPsqlFileDownloadRepo(db *sql.DB) repo.FileDownloadRepo {
 	return &fileDl{db}
 }
 
-func (self *fileDl) SelectAll() ([]model.FileDownload, error) {
+func (self *fileDl) SelectAllByUserId(id int) ([]model.FileDownload, error) {
 	rows, err := self.db.Query(`
 		SELECT	 id
 			,file_id
 			,user_id
 			,created_at
 		FROM t_file_download
-	`)
+		WHERE user_id = $1
+	`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +48,7 @@ func (self *fileDl) SelectAll() ([]model.FileDownload, error) {
 	return downloads, nil
 }
 
+// BROKEN
 func (self *fileDl) Create(fileDl *model.FileDownload) error {
 	stmt, err := self.db.Prepare(`
 		INSERT INTO t_file_download(
@@ -71,6 +73,7 @@ func (self *fileDl) Create(fileDl *model.FileDownload) error {
 	return nil
 }
 
+// BROKEN
 func (self *fileDl) Update(fileDl *model.FileDownload) error {
 	stmt, err := self.db.Prepare(`
 		UPDATE t_file_download SET
@@ -93,6 +96,7 @@ func (self *fileDl) Update(fileDl *model.FileDownload) error {
 	return nil
 }
 
+// BROKEN
 func (self *fileDl) Delete(id int) error {
 	stmt, err := self.db.Prepare("DELETE FROM t_file_download WHERE id=?")
 	if err != nil {

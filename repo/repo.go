@@ -23,7 +23,7 @@ type UserRepo interface {
 }
 
 type FileRepo interface {
-	SelectAll() ([]model.File, error)
+	SelectAllByUserId(id int) ([]model.File, error)
 	Create(file *model.File) error
 	Update(file *model.File) error
 	Delete(id int) error
@@ -44,14 +44,14 @@ type TrxTagsRepo interface {
 }
 
 type FileDownloadRepo interface {
-	SelectAll() ([]model.FileDownload, error)
+	SelectAllByUserId(id int) ([]model.FileDownload, error)
 	Create(fileDl *model.FileDownload) error
 	Update(fileDl *model.FileDownload) error
 	Delete(id int) error
 }
 
 type FileUploadRepo interface {
-	SelectAll() ([]model.FileUpload, error)
+	SelectAllByUserId(id int) ([]model.FileUpload, error)
 	Create(fileUp *model.FileUpload) error
 	Update(fileUp *model.FileUpload) error
 	Delete(id int) error
