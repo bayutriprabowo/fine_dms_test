@@ -130,21 +130,21 @@ func (self *user) validateDuplicate(user *model.User) error {
 	return nil
 }
 
-func (self *user) Login(username, password string) (*model.User, error) {
-	// cari user berdasarkan username
-	user, err := self.userRepo.SelectByUsername(username)
-	if err != nil {
-		return nil, ErrUsecaseInvalidAuth
-	}
+// func (self *user) Login(username, password string) (*model.User, error) {
+// 	// cari user berdasarkan username
+// 	user, err := self.userRepo.SelectByUsername(username)
+// 	if err != nil {
+// 		return nil, ErrUsecaseInvalidAuth
+// 	}
 
-	// verifikasi password
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if err != nil {
-		return nil, ErrUsecaseInvalidAuth
-	}
+// 	// verifikasi password
+// 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+// 	if err != nil {
+// 		return nil, ErrUsecaseInvalidAuth
+// 	}
 
-	return user, nil
-}
+// 	return user, nil
+// }
 
 func (self *user) AuthenticateUser(username string, password string) (int64, error) {
 	// Mendapatkan data pengguna berdasarkan username
