@@ -7,10 +7,17 @@ type ApiResponse struct {
 }
 
 type ApiFileRequest struct {
-	FileName string   `json:"file_name"`
+	FileName string   `json:"file_name" validation:"required"`
 	Ext      string   `json:"ext"`
-	Tags     []string `json:"tags"`
-	Data     []byte   `json:"data"` // base64
+	Tags     []string `json:"tags" validation:"required"`
+	Bytes    []byte   `json:"data" validation:"required"` // base64
+}
+
+type ApiFileResponse struct {
+	FileName string   `json:"file_name" validation:"required"`
+	Ext      string   `json:"ext"`
+	Tags     []string `json:"tags" validation:"required"`
+	Bytes    []byte   `json:"data" validation:"required"` // base64
 }
 
 func NewApiResponseSuccess(msg string, data any) ApiResponse {
@@ -29,10 +36,19 @@ func NewApiResponseFailed(msg string) ApiResponse {
 }
 
 func NewApiFileRequest(fName string, ext string, tags []string,
-	data []byte) ApiFileRequest {
+	bytes []byte) ApiFileRequest {
 	return ApiFileRequest{
 		FileName: fName,
 		Tags:     tags,
-		Data:     data,
+		Bytes:    bytes,
+	}
+}
+
+func NewApiFileResponse(fName string, ext string, tags []string,
+	bytes []byte) ApiFileResponse {
+	return ApiFileResponse{
+		FileName: fName,
+		Tags:     tags,
+		Bytes:    bytes,
 	}
 }
