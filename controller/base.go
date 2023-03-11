@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SuccessJSONResponse(ctx *gin.Context, code int, resp dto.ApiResponse) {
-	ctx.JSON(code, resp)
+func SuccessJSONResponse(ctx *gin.Context, code int, msg string, data any) {
+	ctx.JSON(code, dto.NewApiResponseSuccess(msg, data))
 }
 
-func FailedJSONResponse(ctx *gin.Context, code int, resp dto.ApiResponse) {
-	ctx.JSON(code, resp)
+func FailedJSONResponse(ctx *gin.Context, code int, msg string) {
+	ctx.JSON(code, dto.NewApiResponseFailed(msg))
 }

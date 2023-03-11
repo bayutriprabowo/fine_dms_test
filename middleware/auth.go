@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"enigmacamp.com/fine_dms/controller"
-	"enigmacamp.com/fine_dms/model/dto"
 	"enigmacamp.com/fine_dms/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -16,10 +15,8 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 		tokStr := strings.Replace(authHdr, "Bearer ", "", 1)
 		tok, err := utils.ValidateToken(tokStr, secret)
 		if err != nil {
-			controller.FailedJSONResponse(ctx,
-				http.StatusUnauthorized,
-				dto.NewApiResponseFailed("invalid token"),
-			)
+			controller.FailedJSONResponse(ctx, http.StatusUnauthorized,
+				"invalid token")
 		} else {
 			ctx.Set("user_id", tok)
 		}
