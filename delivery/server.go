@@ -10,10 +10,11 @@ import (
 )
 
 type AppServer struct {
-	infra    manager.InfraManager
-	ucMgr    manager.UsecaseManager
-	engine   *gin.Engine
-	hostPort string
+	infra     manager.InfraManager
+	ucMgr     manager.UsecaseManager
+	engine    *gin.Engine
+	hostPort  string
+	secretKey []byte
 }
 
 func NewAppServer() AppServer {
@@ -25,11 +26,11 @@ func NewAppServer() AppServer {
 	ucMgr := manager.NewUsecaseManager(rpMgr)
 
 	return AppServer{
-		infra:  infrMgr,
-		ucMgr:  ucMgr,
-		engine: srv,
-		hostPort: fmt.Sprintf("%s:%s", cfg.ApiConfig.Host,
-			cfg.ApiConfig.Port),
+		infra:     infrMgr,
+		ucMgr:     ucMgr,
+		engine:    srv,
+		hostPort:  fmt.Sprintf("%s:%s", cfg.ApiConfig.Host, cfg.ApiConfig.Port),
+		secretKey: []byte(cfg.Secret.Key),
 	}
 }
 
@@ -52,6 +53,6 @@ func (self *AppServer) Run() error {
 // private
 func (self *AppServer) v1() {
 	baseRg := self.engine.Group("/v1")
-	controller.NewUserController(baseRg, self.ucMgr.UserUsecase())
+	controller.NewUserController(self.engine, self.ucMgr.UserUsecase(), self.secretKey)
 	controller.NewTagsController(baseRg, self.ucMgr.TagsUsecase())
 }

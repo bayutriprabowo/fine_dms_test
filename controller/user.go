@@ -4,9 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
+	"enigmacamp.com/fine_dms/config"
+	"enigmacamp.com/fine_dms/middleware"
 	"enigmacamp.com/fine_dms/model"
+	"enigmacamp.com/fine_dms/model/dto"
 	"enigmacamp.com/fine_dms/usecase"
+	"enigmacamp.com/fine_dms/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,14 +19,18 @@ type UserController struct {
 	userUsecase usecase.UserUsecase
 }
 
-func NewUserController(rg *gin.RouterGroup, u usecase.UserUsecase) {
+func NewUserController(router *gin.Engine, u usecase.UserUsecase, secret []byte) {
 	uc := UserController{u}
 
-	rg.GET("/user", uc.GetAll)
-	rg.GET("/user/:id", uc.GetById)
-	rg.POST("/user", uc.Add)
-	rg.PUT("/user/:id", uc.Edit)
-	rg.DELETE("/user/:id", uc.Delete)
+	authMiddleware := middleware.ValidateToken(secret)
+
+	router.POST("/login", uc.HandleLogin)
+	router.POST("/user", uc.Add)
+
+	router.GET("/user", authMiddleware, uc.GetAll)
+	router.GET("/profile", authMiddleware, uc.GetById)
+	router.PUT("/user/:id", authMiddleware, uc.Edit)
+	router.DELETE("/user/:id", authMiddleware, uc.Delete)
 }
 
 func (self *UserController) GetAll(ctx *gin.Context) {
@@ -139,4 +148,30 @@ func (self *UserController) Delete(ctx *gin.Context) {
 		fmt.Sprintf("user with id = %d has been deleted", id),
 		nil,
 	)
+}
+
+func (self *UserController) HandleLogin(ctx *gin.Context) {
+	var loginRequest dto.ApiloginRequest
+	if err := ctx.BindJSON(&loginRequest); err != nil {
+		FailedJSONResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	secretKey := []byte(config.NewAppConfig().Secret.Key)
+	userID, err := self.userUsecase.AuthenticateUser(loginRequest.Username, loginRequest.Password)
+	if err != nil {
+		FailedJSONResponse(ctx, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	exp := config.NewAppConfig().Secret.Exp
+	token, err := utils.GenerateToken(secretKey, userID, exp)
+	if err != nil {
+		FailedJSONResponse(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	expired := time.Now().Add(exp).Unix()
+	responseData := gin.H{"token": token, "expired": expired - time.Now().Unix()}
+	SuccessJSONResponse(ctx, http.StatusOK, "Login success", responseData)
 }
