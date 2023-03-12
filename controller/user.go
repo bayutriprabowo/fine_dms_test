@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"time"
 
+	"enigmacamp.com/fine_dms/config"
 	"enigmacamp.com/fine_dms/middleware"
 	"enigmacamp.com/fine_dms/model"
 	"enigmacamp.com/fine_dms/model/dto"
 	"enigmacamp.com/fine_dms/usecase"
 	"enigmacamp.com/fine_dms/utils"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserController struct {
@@ -150,36 +150,28 @@ func (self *UserController) Delete(ctx *gin.Context) {
 	)
 }
 
-func (self *UserController) HandleLogin(c *gin.Context) {
-	var loginData struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
-	if err := c.BindJSON(&loginData); err != nil {
-		c.JSON(http.StatusBadRequest, dto.NewApiResponseFailed(err.Error()))
+func (self *UserController) HandleLogin(ctx *gin.Context) {
+	var loginRequest dto.ApiloginRequest
+	if err := ctx.BindJSON(&loginRequest); err != nil {
+		FailedJSONResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	userId, err := self.userUsecase.AuthenticateUser(loginData.Username, loginData.Password)
+	secretKey := []byte(config.NewAppConfig().Secret.Key)
+	userID, err := self.userUsecase.AuthenticateUser(loginRequest.Username, loginRequest.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, dto.NewApiResponseFailed(err.Error()))
+		FailedJSONResponse(ctx, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	secretKey, err := bcrypt.GenerateFromPassword([]byte(loginData.Password), bcrypt.DefaultCost)
+	exp := config.NewAppConfig().Secret.Exp
+	token, err := utils.GenerateToken(secretKey, userID, exp)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.NewApiResponseFailed(err.Error()))
+		FailedJSONResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	exp := time.Hour
-	token, err := utils.GenerateToken(secretKey, userId, exp)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.NewApiResponseFailed(err.Error()))
-		return
-	}
-
-	responseData := gin.H{"token": token}
-	c.JSON(http.StatusOK, dto.NewApiResponseSuccess("Login success", responseData))
+	expired := time.Now().Add(exp).Unix()
+	responseData := gin.H{"token": token, "expired": expired - time.Now().Unix()}
+	SuccessJSONResponse(ctx, http.StatusOK, "Login success", responseData)
 }

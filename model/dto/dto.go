@@ -20,6 +20,11 @@ type ApiFileResponse struct {
 	Bytes    []byte   `json:"data" validation:"required"` // base64
 }
 
+type ApiloginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func NewApiResponseSuccess(msg string, data any) ApiResponse {
 	return ApiResponse{
 		Status:  "Success",
