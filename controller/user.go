@@ -19,7 +19,7 @@ type UserController struct {
 	userUsecase usecase.UserUsecase
 }
 
-func NewUserController(router *gin.Engine, u usecase.UserUsecase, secret []byte) {
+func NewUserController(router *gin.RouterGroup, u usecase.UserUsecase, secret []byte) {
 	uc := UserController{u}
 
 	authMiddleware := middleware.ValidateToken(secret)

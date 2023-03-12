@@ -53,6 +53,6 @@ func (self *AppServer) Run() error {
 // private
 func (self *AppServer) v1() {
 	baseRg := self.engine.Group("/v1")
-	controller.NewUserController(self.engine, self.ucMgr.UserUsecase(), self.secretKey)
+	controller.NewUserController(baseRg, self.ucMgr.UserUsecase(), self.secretKey)
 	controller.NewTagsController(baseRg, self.ucMgr.TagsUsecase())
 }
