@@ -22,9 +22,9 @@ func NewRepoManager(infr InfraManager) RepoManager {
 }
 
 func (self *repoManager) UserRepo() repo.UserRepo {
-	return psql.NewPsqlUserRepo(self.infraMgr.DbConn())
+	return psql.NewPsqlUserRepo(self.infraMgr.GetDB())
 }
 
 func (self *repoManager) TagsRepo() repo.TagsRepo {
-	return psql.NewPsqlTagsRepo(self.infraMgr.DbConn())
+	return psql.NewPsqlTagsRepo(self.infraMgr.GetDB())
 }
