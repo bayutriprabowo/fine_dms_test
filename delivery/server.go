@@ -12,12 +12,10 @@ import (
 type AppServer struct {
 	infra    manager.InfraManager
 	ucMgr    manager.UsecaseManager
-	engine   *gin.Engine
 	hostPort string
 }
 
 func NewAppServer() AppServer {
-	srv := gin.Default()
 	cfg := config.NewAppConfig()
 
 	infrMgr := manager.NewInfraManager(cfg)
@@ -25,24 +23,25 @@ func NewAppServer() AppServer {
 	ucMgr := manager.NewUsecaseManager(rpMgr)
 
 	return AppServer{
-		infra:  infrMgr,
-		ucMgr:  ucMgr,
-		engine: srv,
+		infra: infrMgr,
+		ucMgr: ucMgr,
 		hostPort: fmt.Sprintf("%s:%s", cfg.ApiConfig.Host,
 			cfg.ApiConfig.Port),
 	}
 }
 
 func (self *AppServer) Run() error {
-	if err := self.infra.DbInit(); err != nil {
+	if err := self.infra.Init(); err != nil {
 		return err
 	}
 
-	defer self.infra.DbConn().Close()
+	defer self.infra.Deinit()
 
-	self.v1()
+	engine := gin.Default()
 
-	if err := self.engine.Run(self.hostPort); err != nil {
+	self.v1(engine)
+
+	if err := engine.Run(self.hostPort); err != nil {
 		return err
 	}
 
@@ -50,8 +49,8 @@ func (self *AppServer) Run() error {
 }
 
 // private
-func (self *AppServer) v1() {
-	baseRg := self.engine.Group("/v1")
+func (self *AppServer) v1(engine *gin.Engine) {
+	baseRg := engine.Group("/v1")
 	controller.NewUserController(baseRg, self.ucMgr.UserUsecase())
 	controller.NewTagsController(baseRg, self.ucMgr.TagsUsecase())
 }

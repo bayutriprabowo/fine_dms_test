@@ -9,39 +9,57 @@ import (
 )
 
 type InfraManager interface {
-	DbInit() error
-	DbConn() *sql.DB
+	Init() error
+	Deinit()
+	GetDB() *sql.DB
 }
 
 type infra struct {
-	db     *sql.DB
-	apiCfg config.ApiConfig
-	dbCfg  config.DbConfig
+	db  *sql.DB
+	cfg config.AppConfig
 }
 
 func NewInfraManager(cfg config.AppConfig) InfraManager {
 	return &infra{
-		apiCfg: cfg.ApiConfig,
-		dbCfg:  cfg.DbConfig,
+		cfg: cfg,
 	}
 }
 
-func (self *infra) DbInit() error {
-	c := &self.dbCfg
+func (self *infra) Init() error {
+	if err := self.dbOpen(); err != nil {
+		return err
+	}
 
-	dbParams := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+	return nil
+}
+
+func (self *infra) Deinit() {
+	if self.db != nil {
+		self.db.Close()
+	}
+}
+
+func (self *infra) GetDB() *sql.DB {
+	return self.db
+}
+
+// private
+func (self *infra) dbOpen() error {
+	var err error
+	var c = &self.cfg.DbConfig
+	var dbParams = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		c.User, c.Password, c.Host, c.Port, c.Name, c.SslMode,
 	)
 
-	db, err := sql.Open("postgres", dbParams)
+	self.db, err = sql.Open("postgres", dbParams)
 	if err != nil {
 		return err
 	}
 
-	self.db = db
-	return nil
-}
+	// test db connection
+	if err = self.db.Ping(); err != nil {
+		return fmt.Errorf("sql.Open: %s", err.Error())
+	}
 
-func (self *infra) DbConn() *sql.DB {
-	return self.db
+	return nil
 }
