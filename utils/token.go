@@ -18,7 +18,7 @@ func GenerateToken(secret []byte, id int64, exp time.Duration) (string, error) {
 	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, cl)
 	sgTok, err := tok.SignedString(secret)
 	if err != nil {
-		log.Println("GenerateToken", err.Error())
+		log.Println("GenerateToken: ", err.Error())
 		return "", err
 	}
 
@@ -35,7 +35,7 @@ func ValidateToken(tokStr string, secret []byte) (string, error) {
 	})
 
 	if err != nil {
-		log.Println("ValidateToken", err.Error())
+		log.Println("ValidateToken: ", err.Error())
 		return "", err
 	}
 
