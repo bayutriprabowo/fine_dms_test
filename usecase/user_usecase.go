@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"errors"
+	"strconv"
 
 	"enigmacamp.com/fine_dms/model"
 	"enigmacamp.com/fine_dms/repo"
+	"enigmacamp.com/fine_dms/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,6 +17,7 @@ var (
 	ErrUsecaseEmptyFname     = errors.New("`first_name` cannot be empty")
 	ErrUsecaseExistsUsername = errors.New("`username` already exists")
 	ErrUsecaseExistsEmail    = errors.New("`email` already exists")
+	ErrUsecaseInvalidEmail   = errors.New("`email` invalid format")
 	ErrUsecaseInvalidAuth    = errors.New("`username` or `password` wrong")
 )
 
@@ -61,7 +64,6 @@ func (self *user) Add(user *model.User) error {
 	if err := self.validateDuplicate(user); err != nil {
 		return err
 	}
-
 	// TODO: hashing password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -82,6 +84,11 @@ func (self *user) Edit(user *model.User) error {
 	}
 
 	// TODO: hashing password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.Password = string(hashedPassword)
 
 	return self.userRepo.Update(user)
 }
@@ -127,18 +134,44 @@ func (self *user) validateDuplicate(user *model.User) error {
 	return nil
 }
 
+func (self *user) AuthenticateUser(username string, password string) (int64, error) {
+	user, err := self.GetByUsername(username)
+	if err != nil {
+		return 0, errors.New("Username atau password salah")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return 0, errors.New("Username atau password salah")
+	}
+
+	return int64(user.ID), nil
+}
+
 func (self *user) Login(username, password string) (*model.User, error) {
-	// cari user berdasarkan username
 	user, err := self.userRepo.SelectByUsername(username)
 	if err != nil {
 		return nil, ErrUsecaseInvalidAuth
 	}
 
-	// verifikasi password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return nil, ErrUsecaseInvalidAuth
 	}
 
 	return user, nil
+}
+
+func (u *user) GetUserIdFromToken(tokenStr string, secret []byte) (int64, error) {
+	userIdStr, err := utils.ValidateToken(tokenStr, secret)
+	if err != nil {
+		return 0, err
+	}
+
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
 }

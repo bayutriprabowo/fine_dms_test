@@ -13,9 +13,6 @@ var (
 
 type TagsUsecase interface {
 	GetAll() ([]model.Tags, error)
-	GetById(id int) (*model.Tags, error)
-	GetByName(name string) (*model.Tags, error)
-	Add(tag *model.Tags) error
 }
 
 type UserUsecase interface {
@@ -25,4 +22,5 @@ type UserUsecase interface {
 	Add(user *model.User) error
 	Edit(user *model.User) error
 	Del(id int) error
+	AuthenticateUser(string, string) (int64, error)
 }

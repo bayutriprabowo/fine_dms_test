@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"enigmacamp.com/fine_dms/model"
 	"enigmacamp.com/fine_dms/usecase"
+	"enigmacamp.com/fine_dms/utils"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserController struct {
@@ -139,4 +142,45 @@ func (self *UserController) Delete(ctx *gin.Context) {
 		fmt.Sprintf("user with id = %d has been deleted", id),
 		nil,
 	)
+}
+
+func (self *UserController) HandleLogin(c *gin.Context) {
+	username := c.Request.FormValue("username")
+	password := c.Request.FormValue("password")
+
+	userId, err := self.userUsecase.AuthenticateUser(username, password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	secretKey, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	exp := time.Hour
+	token, err := utils.GenerateToken(secretKey, userId, exp)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
+}
+
+func (self *UserController) HandleProfile(c *gin.Context) {
+	userId, err := self.userUsecase.AuthenticateUser("Bearer", c.GetHeader("Authorization"))
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	profile, err := self.userUsecase.GetById(int(userId))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, profile)
 }
