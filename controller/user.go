@@ -8,6 +8,7 @@ import (
 
 	"enigmacamp.com/fine_dms/middleware"
 	"enigmacamp.com/fine_dms/model"
+	"enigmacamp.com/fine_dms/model/dto"
 	"enigmacamp.com/fine_dms/usecase"
 	"enigmacamp.com/fine_dms/utils"
 	"github.com/gin-gonic/gin"
@@ -18,23 +19,18 @@ type UserController struct {
 	userUsecase usecase.UserUsecase
 }
 
-func NewUserController(rg *gin.RouterGroup, u usecase.UserUsecase, secret []byte) {
+func NewUserController(router *gin.Engine, u usecase.UserUsecase, secret []byte) {
 	uc := UserController{u}
 
 	authMiddleware := middleware.ValidateToken(secret)
 
-	rg.POST("/login", uc.HandleLogin)
-	auth := rg.Group("/")
-	auth.Use(authMiddleware)
-	{
-		auth.GET("/user", uc.GetAll)
-		auth.GET("/user/:id", uc.GetById)
-		auth.PUT("/user/:id", uc.Edit)
-		auth.DELETE("/user/:id", uc.Delete)
-	}
+	router.POST("/login", uc.HandleLogin)
+	router.POST("/user", uc.Add)
 
-	rg.POST("/user", uc.Add)
-	rg.GET("/profile", uc.HandleProfile)
+	router.GET("/user", authMiddleware, uc.GetAll)
+	router.GET("/profile", authMiddleware, uc.GetById)
+	router.PUT("/user/:id", authMiddleware, uc.Edit)
+	router.DELETE("/user/:id", authMiddleware, uc.Delete)
 }
 
 func (self *UserController) GetAll(ctx *gin.Context) {
@@ -155,42 +151,35 @@ func (self *UserController) Delete(ctx *gin.Context) {
 }
 
 func (self *UserController) HandleLogin(c *gin.Context) {
-	username := c.Request.FormValue("username")
-	password := c.Request.FormValue("password")
+	var loginData struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
 
-	userId, err := self.userUsecase.AuthenticateUser(username, password)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+	if err := c.BindJSON(&loginData); err != nil {
+		c.JSON(http.StatusBadRequest, dto.NewApiResponseFailed(err.Error()))
 		return
 	}
 
-	secretKey, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	userId, err := self.userUsecase.AuthenticateUser(loginData.Username, loginData.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, dto.NewApiResponseFailed(err.Error()))
+		return
+	}
+
+	secretKey, err := bcrypt.GenerateFromPassword([]byte(loginData.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.NewApiResponseFailed(err.Error()))
 		return
 	}
 
 	exp := time.Hour
 	token, err := utils.GenerateToken(secretKey, userId, exp)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.NewApiResponseFailed(err.Error()))
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
-}
-
-func (self *UserController) HandleProfile(c *gin.Context) {
-	userId, err := self.userUsecase.AuthenticateUser("Bearer", c.GetHeader("Authorization"))
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-		return
-	}
-
-	profile, err := self.userUsecase.GetById(int(userId))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, profile)
+	responseData := gin.H{"token": token}
+	c.JSON(http.StatusOK, dto.NewApiResponseSuccess("Login success", responseData))
 }

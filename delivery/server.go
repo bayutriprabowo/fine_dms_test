@@ -1,8 +1,6 @@
 package delivery
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 
 	"enigmacamp.com/fine_dms/config"
@@ -27,21 +25,12 @@ func NewAppServer() AppServer {
 	rpMgr := manager.NewRepoManager(infrMgr)
 	ucMgr := manager.NewUsecaseManager(rpMgr)
 
-	// generate a secure and random secret key
-	key := make([]byte, 32)
-	_, err := rand.Read(key)
-	if err != nil {
-		panic(err)
-	}
-	secretKey := base64.StdEncoding.EncodeToString(key)
-
 	return AppServer{
-		infra:  infrMgr,
-		ucMgr:  ucMgr,
-		engine: srv,
-		hostPort: fmt.Sprintf("%s:%s", cfg.ApiConfig.Host,
-			cfg.ApiConfig.Port),
-		secretKey: []byte(secretKey),
+		infra:     infrMgr,
+		ucMgr:     ucMgr,
+		engine:    srv,
+		hostPort:  fmt.Sprintf("%s:%s", cfg.ApiConfig.Host, cfg.ApiConfig.Port),
+		secretKey: []byte(cfg.Secret.Key),
 	}
 }
 
@@ -64,6 +53,6 @@ func (self *AppServer) Run() error {
 // private
 func (self *AppServer) v1() {
 	baseRg := self.engine.Group("/v1")
-	controller.NewUserController(baseRg, self.ucMgr.UserUsecase(), self.secretKey)
+	controller.NewUserController(self.engine, self.ucMgr.UserUsecase(), self.secretKey)
 	controller.NewTagsController(baseRg, self.ucMgr.TagsUsecase())
 }

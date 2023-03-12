@@ -111,8 +111,7 @@ func (self *user) validateEmpty(user *model.User) error {
 		return ErrUsecaseEmptyFname
 	}
 
-	valid := utils.ValidateEmail(user.Email)
-	if !valid {
+	if !utils.ValidateEmail(user.Email) {
 		return ErrUsecaseInvalidEmail
 	}
 
