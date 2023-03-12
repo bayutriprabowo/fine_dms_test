@@ -43,5 +43,5 @@ func ValidateToken(tokStr string, secret []byte) (string, error) {
 		return fmt.Sprintf("%d", cl["user_id"]), nil
 	}
 
-	return "", nil
+	return "", errors.New("invalid token")
 }
