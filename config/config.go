@@ -23,7 +23,7 @@ type Storage struct {
 }
 
 type Secret struct {
-	Key string
+	Key []byte
 	Exp time.Duration
 }
 
@@ -54,7 +54,7 @@ func NewAppConfig() AppConfig {
 			Port: utils.GetEnv("HTTP_SERVER_PORT"),
 		},
 		Secret: Secret{
-			Key: utils.GetEnv("SECRET_KEY"),
+			Key: []byte(utils.GetEnv("SECRET_KEY")),
 			Exp: time.Duration(exp),
 		},
 		Storage: Storage{

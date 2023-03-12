@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"enigmacamp.com/fine_dms/config"
 	"enigmacamp.com/fine_dms/middleware"
@@ -17,12 +16,14 @@ import (
 
 type UserController struct {
 	userUsecase usecase.UserUsecase
+	secret      *config.Secret
 }
 
-func NewUserController(router *gin.RouterGroup, u usecase.UserUsecase, secret []byte) {
-	uc := UserController{u}
+func NewUserController(router *gin.RouterGroup, u usecase.UserUsecase,
+	cfg *config.Secret) {
 
-	authMiddleware := middleware.ValidateToken(secret)
+	uc := UserController{u, cfg}
+	authMiddleware := middleware.ValidateToken(cfg.Key)
 
 	router.POST("/login", uc.HandleLogin)
 	router.POST("/user", uc.Add)
@@ -50,7 +51,13 @@ func (self *UserController) GetAll(ctx *gin.Context) {
 }
 
 func (self *UserController) GetById(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+	user_id, ok := ctx.Get("user_id")
+	if !ok {
+		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
+		return
+	}
+
+	id, err := strconv.Atoi(user_id.(string))
 	if err != nil {
 		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
 		return
@@ -157,21 +164,20 @@ func (self *UserController) HandleLogin(ctx *gin.Context) {
 		return
 	}
 
-	secretKey := []byte(config.NewAppConfig().Secret.Key)
-	userID, err := self.userUsecase.AuthenticateUser(loginRequest.Username, loginRequest.Password)
+	userID, err := self.userUsecase.AuthenticateUser(loginRequest.Username,
+		loginRequest.Password)
 	if err != nil {
 		FailedJSONResponse(ctx, http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	exp := config.NewAppConfig().Secret.Exp
-	token, err := utils.GenerateToken(secretKey, userID, exp)
+	token, err := utils.GenerateToken(self.secret.Key, userID, self.secret.Exp)
 	if err != nil {
 		FailedJSONResponse(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	expired := time.Now().Add(exp).Unix()
-	responseData := gin.H{"token": token, "expired": expired - time.Now().Unix()}
+	// TODO: A proper expiration time (unix epoch)
+	responseData := gin.H{"token": token, "expired": self.secret.Exp}
 	SuccessJSONResponse(ctx, http.StatusOK, "Login success", responseData)
 }

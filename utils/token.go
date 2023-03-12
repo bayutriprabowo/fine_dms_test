@@ -12,7 +12,7 @@ import (
 func GenerateToken(secret []byte, id int64, exp time.Duration) (string, error) {
 	cl := jwt.MapClaims{
 		"user_id": id,
-		"exp":     time.Now().Add(exp).Unix(),
+		"exp":     time.Now().Add(exp * time.Second).Unix(),
 	}
 
 	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, cl)
@@ -40,7 +40,7 @@ func ValidateToken(tokStr string, secret []byte) (string, error) {
 	}
 
 	if cl, ok := tok.Claims.(jwt.MapClaims); ok && tok.Valid {
-		return fmt.Sprintf("%d", cl["user_id"]), nil
+		return fmt.Sprintf("%v", cl["user_id"]), nil
 	}
 
 	return "", errors.New("invalid token")

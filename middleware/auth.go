@@ -16,7 +16,8 @@ func ValidateToken(secret []byte) gin.HandlerFunc {
 
 		user_id, err := utils.ValidateToken(tokStr, secret)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, dto.NewApiResponseFailed("invalid token"))
+			ctx.JSON(http.StatusUnauthorized,
+				dto.NewApiResponseFailed("invalid token"))
 			ctx.Abort()
 			return
 		} else {

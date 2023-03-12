@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"errors"
-	"strconv"
 
 	"enigmacamp.com/fine_dms/model"
 	"enigmacamp.com/fine_dms/repo"
@@ -64,8 +63,9 @@ func (self *user) Add(user *model.User) error {
 	if err := self.validateDuplicate(user); err != nil {
 		return err
 	}
-	// TODO: hashing password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),
+		bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
@@ -83,8 +83,8 @@ func (self *user) Edit(user *model.User) error {
 		return err
 	}
 
-	// TODO: hashing password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password),
+		bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
@@ -141,12 +141,12 @@ func (self *user) validateDuplicate(user *model.User) error {
 func (self *user) AuthenticateUser(username string, password string) (int64, error) {
 	user, err := self.GetByUsername(username)
 	if err != nil {
-		return 0, errors.New("Username atau password salah")
+		return 0, ErrUsecaseInvalidAuth
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return 0, errors.New("Username atau password salah")
+		return 0, ErrUsecaseInvalidAuth
 	}
 
 	return int64(user.ID), nil
@@ -164,18 +164,4 @@ func (self *user) Login(username, password string) (*model.User, error) {
 	}
 
 	return user, nil
-}
-
-func (u *user) GetUserIdFromToken(tokenStr string, secret []byte) (int64, error) {
-	userIdStr, err := utils.ValidateToken(tokenStr, secret)
-	if err != nil {
-		return 0, err
-	}
-
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	return userId, nil
 }
