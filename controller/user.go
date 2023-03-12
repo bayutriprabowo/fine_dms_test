@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"enigmacamp.com/fine_dms/middleware"
 	"enigmacamp.com/fine_dms/model"
 	"enigmacamp.com/fine_dms/usecase"
 	"enigmacamp.com/fine_dms/utils"
@@ -17,14 +18,23 @@ type UserController struct {
 	userUsecase usecase.UserUsecase
 }
 
-func NewUserController(rg *gin.RouterGroup, u usecase.UserUsecase) {
+func NewUserController(rg *gin.RouterGroup, u usecase.UserUsecase, secret []byte) {
 	uc := UserController{u}
 
-	rg.GET("/user", uc.GetAll)
-	rg.GET("/user/:id", uc.GetById)
+	authMiddleware := middleware.ValidateToken(secret)
+
+	rg.POST("/login", uc.HandleLogin)
+	auth := rg.Group("/")
+	auth.Use(authMiddleware)
+	{
+		auth.GET("/user", uc.GetAll)
+		auth.GET("/user/:id", uc.GetById)
+		auth.PUT("/user/:id", uc.Edit)
+		auth.DELETE("/user/:id", uc.Delete)
+	}
+
 	rg.POST("/user", uc.Add)
-	rg.PUT("/user/:id", uc.Edit)
-	rg.DELETE("/user/:id", uc.Delete)
+	rg.GET("/profile", uc.HandleProfile)
 }
 
 func (self *UserController) GetAll(ctx *gin.Context) {
