@@ -5,6 +5,7 @@ import (
 
 	"enigmacamp.com/fine_dms/model"
 	"enigmacamp.com/fine_dms/repo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -14,6 +15,7 @@ var (
 	ErrUsecaseEmptyFname     = errors.New("`first_name` cannot be empty")
 	ErrUsecaseExistsUsername = errors.New("`username` already exists")
 	ErrUsecaseExistsEmail    = errors.New("`email` already exists")
+	ErrUsecaseInvalidAuth    = errors.New("`username` or `password` wrong")
 )
 
 type user struct {
@@ -61,6 +63,11 @@ func (self *user) Add(user *model.User) error {
 	}
 
 	// TODO: hashing password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.Password = string(hashedPassword)
 
 	return self.userRepo.Create(user)
 }
@@ -118,4 +125,20 @@ func (self *user) validateDuplicate(user *model.User) error {
 	}
 
 	return nil
+}
+
+func (self *user) Login(username, password string) (*model.User, error) {
+	// cari user berdasarkan username
+	user, err := self.userRepo.SelectByUsername(username)
+	if err != nil {
+		return nil, ErrUsecaseInvalidAuth
+	}
+
+	// verifikasi password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return nil, ErrUsecaseInvalidAuth
+	}
+
+	return user, nil
 }
