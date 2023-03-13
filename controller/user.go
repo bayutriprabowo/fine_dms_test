@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -30,8 +31,8 @@ func NewUserController(router *gin.RouterGroup, u usecase.UserUsecase,
 
 	router.GET("/user", authMiddleware, uc.GetAll)
 	router.GET("/profile", authMiddleware, uc.GetById)
-	router.PUT("/user/:id", authMiddleware, uc.Edit)
-	router.DELETE("/user/:id", authMiddleware, uc.Delete)
+	router.PUT("/user", authMiddleware, uc.Edit)
+	router.DELETE("/user", authMiddleware, uc.Delete)
 }
 
 func (self *UserController) GetAll(ctx *gin.Context) {
@@ -51,15 +52,8 @@ func (self *UserController) GetAll(ctx *gin.Context) {
 }
 
 func (self *UserController) GetById(ctx *gin.Context) {
-	user_id, ok := ctx.Get("user_id")
-	if !ok {
-		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
-		return
-	}
-
-	id, err := strconv.Atoi(user_id.(string))
+	id, err := self.getUserId(ctx)
 	if err != nil {
-		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
 		return
 	}
 
@@ -108,18 +102,17 @@ func (self *UserController) Add(ctx *gin.Context) {
 func (self *UserController) Edit(ctx *gin.Context) {
 	var user model.User
 
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		FailedJSONResponse(ctx, http.StatusBadRequest, "Invalid user id")
-		return
-	}
-
-	user.ID = id
-
 	if err := ctx.BindJSON(&user); err != nil {
 		FailedJSONResponse(ctx, http.StatusBadRequest, "Invalid Input")
 		return
 	}
+
+	id, err := self.getUserId(ctx)
+	if err != nil {
+		return
+	}
+
+	user.ID = id
 
 	if err := self.userUsecase.Edit(&user); err != nil {
 		if err == usecase.ErrUsecaseInternal {
@@ -139,9 +132,8 @@ func (self *UserController) Edit(ctx *gin.Context) {
 }
 
 func (self *UserController) Delete(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+	id, err := self.getUserId(ctx)
 	if err != nil {
-		FailedJSONResponse(ctx, http.StatusBadRequest, "Invalid user id")
 		return
 	}
 
@@ -180,4 +172,21 @@ func (self *UserController) HandleLogin(ctx *gin.Context) {
 	// TODO: A proper expiration time (unix epoch)
 	responseData := gin.H{"token": token, "expired": self.secret.Exp}
 	SuccessJSONResponse(ctx, http.StatusOK, "Login success", responseData)
+}
+
+// private
+func (self *UserController) getUserId(ctx *gin.Context) (int, error) {
+	user_id, ok := ctx.Get("user_id")
+	if !ok {
+		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
+		return -1, errors.New("invalid user id")
+	}
+
+	id, err := strconv.Atoi(user_id.(string))
+	if err != nil {
+		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
+		return -1, errors.New("invalid user id")
+	}
+
+	return id, nil
 }
