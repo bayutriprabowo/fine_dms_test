@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"errors"
+	"net/http"
+	"strconv"
+
 	"enigmacamp.com/fine_dms/model/dto"
 	"github.com/gin-gonic/gin"
 )
@@ -11,4 +15,20 @@ func SuccessJSONResponse(ctx *gin.Context, code int, msg string, data any) {
 
 func FailedJSONResponse(ctx *gin.Context, code int, msg string) {
 	ctx.JSON(code, dto.NewApiResponseFailed(msg))
+}
+
+func GetUserId(ctx *gin.Context) (int, error) {
+	user_id, ok := ctx.Get("user_id")
+	if !ok {
+		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
+		return -1, errors.New("invalid user id")
+	}
+
+	id, err := strconv.Atoi(user_id.(string))
+	if err != nil {
+		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
+		return -1, errors.New("invalid user id")
+	}
+
+	return id, nil
 }

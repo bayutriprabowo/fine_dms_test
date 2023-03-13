@@ -1,10 +1,8 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"enigmacamp.com/fine_dms/config"
 	"enigmacamp.com/fine_dms/middleware"
@@ -52,7 +50,7 @@ func (self *UserController) GetAll(ctx *gin.Context) {
 }
 
 func (self *UserController) GetById(ctx *gin.Context) {
-	id, err := self.getUserId(ctx)
+	id, err := GetUserId(ctx)
 	if err != nil {
 		return
 	}
@@ -107,7 +105,7 @@ func (self *UserController) Edit(ctx *gin.Context) {
 		return
 	}
 
-	id, err := self.getUserId(ctx)
+	id, err := GetUserId(ctx)
 	if err != nil {
 		return
 	}
@@ -132,7 +130,7 @@ func (self *UserController) Edit(ctx *gin.Context) {
 }
 
 func (self *UserController) Delete(ctx *gin.Context) {
-	id, err := self.getUserId(ctx)
+	id, err := GetUserId(ctx)
 	if err != nil {
 		return
 	}
@@ -172,21 +170,4 @@ func (self *UserController) HandleLogin(ctx *gin.Context) {
 	// TODO: A proper expiration time (unix epoch)
 	responseData := gin.H{"token": token, "expired": self.secret.Exp}
 	SuccessJSONResponse(ctx, http.StatusOK, "Login success", responseData)
-}
-
-// private
-func (self *UserController) getUserId(ctx *gin.Context) (int, error) {
-	user_id, ok := ctx.Get("user_id")
-	if !ok {
-		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
-		return -1, errors.New("invalid user id")
-	}
-
-	id, err := strconv.Atoi(user_id.(string))
-	if err != nil {
-		FailedJSONResponse(ctx, http.StatusBadRequest, "invalid user id")
-		return -1, errors.New("invalid user id")
-	}
-
-	return id, nil
 }
