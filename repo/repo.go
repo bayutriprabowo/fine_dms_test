@@ -27,6 +27,9 @@ type FileRepo interface {
 	Create(file *model.File) error
 	Update(file *model.File) error
 	Delete(id int) error
+	SearchById(userId int, query string) ([]model.File, error)
+	SearchByName(query string) ([]model.File, error)
+	SearchByTags(tags []string) ([]model.File, error)
 }
 
 type TagsRepo interface {

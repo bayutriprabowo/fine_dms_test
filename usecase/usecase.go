@@ -7,8 +7,19 @@ import (
 )
 
 var (
-	ErrUsecaseInternal = errors.New("internal server error")
-	ErrUsecaseNoData   = errors.New("no data")
+	ErrUsecaseInternal       = errors.New("internal server error")
+	ErrUsecaseNoData         = errors.New("no data")
+	ErrUsecaseEmptyEmail     = errors.New("`email` cannot be empty")
+	ErrUsecaseEmptyUsername  = errors.New("`username` cannot be empty")
+	ErrUsecaseEmptyPassword  = errors.New("`password` cannot be empty")
+	ErrUsecaseEmptyFname     = errors.New("`first_name` cannot be empty")
+	ErrUsecaseExistsUsername = errors.New("`username` already exists")
+	ErrUsecaseExistsEmail    = errors.New("`email` already exists")
+	ErrUsecaseInvalidEmail   = errors.New("`email` invalid format")
+	ErrUsecaseInvalidAuth    = errors.New("`username` or `password` wrong")
+	ErrInvalidFileData       = errors.New("invalid file data")
+	ErrInvalidUserID         = errors.New("invalid user id")
+	ErrInvalidQuery          = errors.New("invalid query")
 )
 
 type TagsUsecase interface {
@@ -23,4 +34,13 @@ type UserUsecase interface {
 	Edit(user *model.User) error
 	Del(id int) error
 	AuthenticateUser(string, string) (int64, error)
+}
+
+type FileUsecase interface {
+	GetFilesByUserId(id int) ([]model.File, error)
+	UpdateFile(id int, path, ext string) error
+	DeleteFile(userId int, fileId int) error
+	SearchByUserId(id int, query string) ([]model.File, error)
+	SearchByName(query string) ([]model.File, error)
+	SearchByTags(tags []string) ([]model.File, error)
 }
