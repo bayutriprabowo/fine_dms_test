@@ -27,12 +27,13 @@ func NewUserController(router *gin.RouterGroup, u usecase.UserUsecase,
 	router.POST("/login", uc.HandleLogin)
 	router.POST("/user", uc.Add)
 
-	router.GET("/user", authMiddleware, uc.GetAll)
+	//router.GET("/user", authMiddleware, uc.GetAll)
 	router.GET("/profile", authMiddleware, uc.GetById)
 	router.PUT("/user", authMiddleware, uc.Edit)
 	router.DELETE("/user", authMiddleware, uc.Delete)
 }
 
+// is used for debugging
 func (self *UserController) GetAll(ctx *gin.Context) {
 	res, err := self.userUsecase.GetAll()
 	if err != nil {
@@ -67,7 +68,17 @@ func (self *UserController) GetById(ctx *gin.Context) {
 		return
 	}
 
-	SuccessJSONResponse(ctx, http.StatusOK, "", res)
+	var dRes = dto.ApiUserResponse{
+		ID:        res.ID,
+		Username:  res.Username,
+		Email:     res.Email,
+		FirstName: res.FirstName,
+		LastName:  res.LastName,
+		CreatedAt: res.CreatedAt,
+		UpdatedAt: res.UpdatedAt,
+	}
+
+	SuccessJSONResponse(ctx, http.StatusOK, "", dRes)
 }
 
 func (self *UserController) Add(ctx *gin.Context) {

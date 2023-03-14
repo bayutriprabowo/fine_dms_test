@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type ApiResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
@@ -23,6 +25,16 @@ type ApiFileResponse struct {
 type ApiloginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type ApiUserResponse struct {
+	ID        int       `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func NewApiResponseSuccess(msg string, data any) ApiResponse {

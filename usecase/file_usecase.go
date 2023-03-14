@@ -28,7 +28,7 @@ func (self *file) GetFilesByUserId(id int) ([]model.File, error) {
 }
 
 func (self *file) UpdateFile(id int, path, ext string) error {
-	if id == 0 || path == "" || ext == "" {
+	if len(path) == 0 || len(ext) == 0 {
 		return ErrInvalidFileData
 	}
 
@@ -89,11 +89,7 @@ func (self *file) DeleteFile(userId int, fileId int) error {
 }
 
 func (self *file) SearchByUserId(userId int, query string) ([]model.File, error) {
-	// if userId == 0 {
-	// 	return nil, ErrInvalidUserID
-	// }
-
-	if query == "" {
+	if len(query) == 0 {
 		return nil, ErrInvalidQuery
 	}
 
@@ -106,7 +102,7 @@ func (self *file) SearchByUserId(userId int, query string) ([]model.File, error)
 }
 
 func (self *file) SearchByName(name string) ([]model.File, error) {
-	if name == "" {
+	if len(name) == 0 {
 		return nil, ErrInvalidQuery
 	}
 

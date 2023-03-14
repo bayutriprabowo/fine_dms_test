@@ -105,8 +105,6 @@ func (self *file) Update(file *model.File) error {
 	return nil
 }
 
-// BROKEN
-
 func (self *file) Delete(id int) error {
 	stmt, err := self.db.Prepare(`
 		DELETE FROM m_file WHERE id = $1
