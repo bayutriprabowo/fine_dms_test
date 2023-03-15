@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"strings"
 	"time"
 
 	"enigmacamp.com/fine_dms/model"
@@ -88,17 +89,28 @@ func (self *file) DeleteFile(userId int, fileId int) error {
 	return nil
 }
 
-func (self *file) SearchByUserId(userId int, query string) ([]model.File, error) {
-	if len(query) == 0 {
-		return nil, ErrInvalidQuery
-	}
-
-	files, err := self.fileRepo.SearchById(userId, query)
+func (self *file) SearchByUserId(userID int, query string) ([]model.File, error) {
+	files, err := self.GetFilesByUserId(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	return files, nil
+	if query == "" {
+		return files, nil
+	}
+
+	filteredFiles := make([]model.File, 0)
+	for _, file := range files {
+		if strings.Contains(strings.ToLower(file.User.Username), strings.ToLower(query)) {
+			filteredFiles = append(filteredFiles, file)
+		}
+	}
+
+	if len(filteredFiles) == 0 {
+		return nil, ErrInvalidUserID
+	}
+
+	return filteredFiles, nil
 }
 
 func (self *file) SearchByName(name string) ([]model.File, error) {

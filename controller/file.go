@@ -131,7 +131,7 @@ func (fc *FileController) searchFiles(ctx *gin.Context) {
 			tags := strings.Split(tagsParam, ",")
 			files, err = fc.fileUsecase.SearchByTags(tags)
 		} else {
-			SuccessJSONResponse(ctx, http.StatusOK, "Success", nil)
+			FailedJSONResponse(ctx, http.StatusBadRequest, "missing search criteria")
 			return
 		}
 	}
@@ -139,7 +139,7 @@ func (fc *FileController) searchFiles(ctx *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, repo.ErrRepoNoData):
-			FailedJSONResponse(ctx, http.StatusNotFound, "no data")
+			FailedJSONResponse(ctx, http.StatusNotFound, "no files found")
 		case errors.Is(err, usecase.ErrInvalidUserID), errors.Is(err, usecase.ErrInvalidQuery), errors.Is(err, usecase.ErrUsecaseInvalidTag):
 			FailedJSONResponse(ctx, http.StatusBadRequest, err.Error())
 		default:
@@ -148,5 +148,10 @@ func (fc *FileController) searchFiles(ctx *gin.Context) {
 		return
 	}
 
-	SuccessJSONResponse(ctx, http.StatusOK, "file search successfully", files)
+	if len(files) == 0 {
+		FailedJSONResponse(ctx, http.StatusNotFound, "no files found")
+		return
+	}
+
+	SuccessJSONResponse(ctx, http.StatusOK, "file search successfully", gin.H{"data": files})
 }
